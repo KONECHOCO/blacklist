@@ -40,15 +40,10 @@ workflows:
           success: true
           failure: true
       app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY # Caricata dalle variabili ambiente Codemagic
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: true # Invia automaticamente a TestFlight per i tester
-        beta_build_localizations:
-          - locale: en-US
-            whats_new: "Rilascio iniziale Blacklist Call Screening & Blocking"
-          - locale: it
-            whats_new: "Rilascio iniziale Blacklist Protezione Chiamate Spam"
+        submit_to_testflight: true
 
   android-release:
     name: Android Release Build & Google Play Deployment
