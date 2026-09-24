@@ -1,0 +1,83 @@
+# 🚀 Codemagic CI/CD Configuration for Blacklist App
+# Auto-Build & Publish to App Store Connect (TestFlight/App Store) & Google Play Store
+
+workflows:
+  ios-release:
+    name: iOS Release Build & App Store Connect Deployment
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      groups:
+        - app_store_credentials # Configura questo gruppo su Codemagic con la chiave API App Store Connect
+      vars:
+        BUNDLE_ID: "com.blacklist.app"
+        XCODE_SCHEME: "Runner"
+    scripts:
+      - name: Set up code signing settings on Xcode project
+        script: |
+          xcode-project use-profiles
+      - name: Get Flutter packages
+        script: |
+          flutter packages pub get
+      - name: Run Flutter Analyze
+        script: |
+          flutter analyze
+      - name: Build iOS IPA
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      email:
+        recipients:
+          - user@example.com
+        notify:
+          success: true
+          failure: true
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY # Caricata dalle variabili ambiente Codemagic
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true # Invia automaticamente a TestFlight per i tester
+        beta_build_localizations:
+          - locale: en-US
+            whats_new: "Rilascio iniziale Blacklist Call Screening & Blocking"
+          - locale: it
+            whats_new: "Rilascio iniziale Blacklist Protezione Chiamate Spam"
+
+  android-release:
+    name: Android Release Build & Google Play Deployment
+    instance_type: mac_mini_m1
+    max_build_duration: 30
+    environment:
+      flutter: stable
+      groups:
+        - google_play_credentials # Configura le credenziali di firma Android su Codemagic
+      vars:
+        PACKAGE_NAME: "com.blacklist.app"
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter packages pub get
+      - name: Build Android App Bundle (.aab)
+        script: |
+          flutter build appbundle --release
+    artifacts:
+      - build/app/outputs/bundle/release/*.aab
+      - build/app/outputs/flutter-apk/*.apk
+    publishing:
+      email:
+        recipients:
+          - user@example.com
+        notify:
+          success: true
+          failure: true
+      google_play:
+        credentials: $GCP_SERVICE_ACCOUNT_KEY
+        track: internal # Traccia interna o produzione su Google Play Console
+        submit_as_draft: false
