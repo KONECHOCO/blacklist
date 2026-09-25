@@ -2,21 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import 'core/theme/app_theme.dart';
-import 'core/localization/app_localizations.dart';
-import 'core/services/ad_service.dart';
-import 'providers/shield_provider.dart';
-import 'providers/spam_database_provider.dart';
-import 'providers/blacklist_provider.dart';
-import 'providers/premium_provider.dart';
-import 'screens/home_screen.dart';
+import 'l10n.dart';
+import 'monetization/ads.dart';
+import 'monetization/premium.dart';
+import 'services/app_state.dart';
+import 'ui/home.dart';
+import 'ui/theme.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Inizializzazione SDK AdMob
-  await AdService.instance.initialize();
-
+  await AppState.instance.init();
+  await Premium.instance.init();
+  await Ads.instance.init();
   runApp(const BlacklistApp());
 }
 
@@ -27,34 +24,25 @@ class BlacklistApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ShieldProvider()),
-        ChangeNotifierProvider(create: (_) => SpamDatabaseProvider()..loadInitialData()),
-        ChangeNotifierProvider(create: (_) => BlacklistProvider()..loadCustomRules()),
-        ChangeNotifierProvider(create: (_) => PremiumProvider()..loadSettings()),
+        ChangeNotifierProvider.value(value: AppState.instance),
+        ChangeNotifierProvider.value(value: Premium.instance),
       ],
-      child: Consumer<PremiumProvider>(
-        builder: (context, premium, child) {
-          return MaterialApp(
-            title: 'Blacklist',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme,
-            locale: Locale(premium.localeCode),
-            supportedLocales: const [
-              Locale('it', ''),
-              Locale('en', ''),
-              Locale('es', ''),
-              Locale('de', ''),
-              Locale('fr', ''),
-            ],
-            localizationsDelegates: const [
-              AppLocalizationsDelegate(),
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            home: const HomeScreen(),
-          );
-        },
+      child: Selector<AppState, String?>(
+        selector: (_, s) => s.language,
+        builder: (context, language, _) => MaterialApp(
+          title: 'Blacklist',
+          debugShowCheckedModeBanner: false,
+          theme: buildTheme(Brightness.light),
+          darkTheme: buildTheme(Brightness.dark),
+          locale: language == null ? null : Locale(language),
+          supportedLocales: L10n.languages.keys.map(Locale.new),
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
+          localeResolutionCallback: (device, supported) {
+            final code = device?.languageCode;
+            return supported.firstWhere((l) => l.languageCode == code, orElse: () => const Locale('en'));
+          },
+          home: const HomeShell(),
+        ),
       ),
     );
   }

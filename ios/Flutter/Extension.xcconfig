@@ -1,0 +1,2 @@
+// Call Directory extension: Flutter build name/number only (no Pods).
+#include? "Generated.xcconfig"

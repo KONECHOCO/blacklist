@@ -1,78 +1,98 @@
-# 🚀 Codemagic CI/CD Configuration for Blacklist App
-# Auto-Build & Publish to App Store Connect (TestFlight/App Store) & Google Play Store
-
 workflows:
+  # ── iOS: app + CallKit Call Directory extension ────────────
   ios-release:
-    name: iOS Release Build & App Store Connect Deployment
-    instance_type: mac_mini_m1
-    max_build_duration: 60
+    name: iOS
+    max_build_duration: 45
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Ikonet Solutions
     environment:
       flutter: stable
       xcode: latest
       cocoapods: default
-      groups:
-        - app_store_credentials # Configura questo gruppo su Codemagic con la chiave API App Store Connect
+      ios_signing:
+        provisioning_profiles:
+          - blacklist_appstore
+          - blacklist_calldirectory_appstore
+        certificates:
+          - ithelpdesk_distribution_20260916
       vars:
-        BUNDLE_ID: "com.blacklist.app"
-        XCODE_SCHEME: "Runner"
+        BUNDLE_ID: com.konechoco.blacklist
+        API_BASE: https://blacklist.ikonetsolutions.com
+        UNITY_GAME_ID_IOS: ""
+        IOS_ADMOB_APP_ID: ""
+        ADMOB_BANNER_IOS: ""
+    cache:
+      cache_paths:
+        - $HOME/.pub-cache
+        - $HOME/Library/Caches/CocoaPods
     scripts:
-      - name: Set up code signing settings on Xcode project
+      - name: Get packages
+        script: flutter pub get
+      - name: Add Call Directory extension to the Xcode project
         script: |
-          xcode-project use-profiles
-      - name: Get Flutter packages
+          gem install xcodeproj --user-install --no-document
+          ruby ios/scripts/add_call_directory.rb
+      - name: Set AdMob app id
         script: |
-          flutter packages pub get
-      - name: Run Flutter Analyze
+          if [ -n "$IOS_ADMOB_APP_ID" ]; then
+            /usr/libexec/PlistBuddy -c "Set :GADApplicationIdentifier $IOS_ADMOB_APP_ID" ios/Runner/Info.plist
+          fi
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Build IPA
         script: |
-          flutter analyze
-      - name: Build iOS IPA
-        script: |
+          BUILD_NUMBER=$(date +%y%m%d%H%M)
           flutter build ipa --release \
+            --build-number=$BUILD_NUMBER \
+            --dart-define=API_BASE="$API_BASE" \
+            --dart-define=UNITY_GAME_ID_IOS="$UNITY_GAME_ID_IOS" \
+            --dart-define=ADMOB_BANNER_IOS="$ADMOB_BANNER_IOS" \
             --export-options-plist=/Users/builder/export_options.plist
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
     publishing:
-      email:
-        recipients:
-          - user@example.com
-        notify:
-          success: true
-          failure: true
       app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: true
+        auth: integration
+        submit_to_testflight: false
 
+  # ── Android: CallScreeningService ──────────────────────────
   android-release:
-    name: Android Release Build & Google Play Deployment
-    instance_type: mac_mini_m1
+    name: Android
     max_build_duration: 30
+    instance_type: mac_mini_m2
     environment:
       flutter: stable
+      android_signing:
+        - blacklist_upload
       groups:
-        - google_play_credentials # Configura le credenziali di firma Android su Codemagic
+        - google_play
       vars:
-        PACKAGE_NAME: "com.blacklist.app"
+        API_BASE: https://blacklist.ikonetsolutions.com
+        UNITY_GAME_ID_ANDROID: ""
+        ADMOB_APP_ID_ANDROID: ""
+        ADMOB_BANNER_ANDROID: ""
+    cache:
+      cache_paths:
+        - $HOME/.pub-cache
+        - $HOME/.gradle/caches
     scripts:
-      - name: Get Flutter packages
+      - name: Set up local properties
+        script: echo "flutter.sdk=$HOME/programs/flutter" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Get packages
+        script: flutter pub get
+      - name: Build AAB
         script: |
-          flutter packages pub get
-      - name: Build Android App Bundle (.aab)
-        script: |
-          flutter build appbundle --release
+          flutter build appbundle --release \
+            --build-number=$(date +%y%m%d%H) \
+            --dart-define=API_BASE="$API_BASE" \
+            --dart-define=UNITY_GAME_ID_ANDROID="$UNITY_GAME_ID_ANDROID" \
+            --dart-define=ADMOB_BANNER_ANDROID="$ADMOB_BANNER_ANDROID"
     artifacts:
       - build/app/outputs/bundle/release/*.aab
-      - build/app/outputs/flutter-apk/*.apk
     publishing:
-      email:
-        recipients:
-          - user@example.com
-        notify:
-          success: true
-          failure: true
       google_play:
-        credentials: $GCP_SERVICE_ACCOUNT_KEY
-        track: internal # Traccia interna o produzione su Google Play Console
-        submit_as_draft: false
+        credentials: $GOOGLE_PLAY_SERVICE_ACCOUNT_JSON
+        track: internal
+        submit_as_draft: true
