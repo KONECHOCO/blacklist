@@ -1,5 +1,5 @@
-# Blacklist API on the shared Hetzner VPS: container "blacklist-api" on host port 8092
-# (RF Terminal uses 8090, MM Connect 8091). The host nginx proxies to it.
+# Blacklist API on the shared Hetzner VPS: container "blacklist-api" on host port 8094
+# (8090-8093 are taken by other apps). The host nginx proxies to it.
 services:
   blacklist-api:
     build: .
@@ -9,4 +9,4 @@ services:
     volumes:
       - ./data:/data
     ports:
-      - "127.0.0.1:8092:8000"
+      - "127.0.0.1:8094:8000"
