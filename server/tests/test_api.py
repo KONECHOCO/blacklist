@@ -1,4 +1,6 @@
 import os, tempfile
+os.environ["AGG_TTL"] = "0"
+os.environ["FTC_IMPORT"] = "0"
 os.environ["DB_PATH"] = os.path.join(tempfile.mkdtemp(), "t.db")
 from fastapi.testclient import TestClient
 from app.main import app

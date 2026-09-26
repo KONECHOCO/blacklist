@@ -14,6 +14,7 @@ from contextlib import contextmanager
 from typing import Optional
 
 import phonenumbers
+from . import ftc
 from fastapi import FastAPI, Form, HTTPException, Request, Response
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse
@@ -88,6 +89,49 @@ def init_db():
     os.makedirs(os.path.dirname(DB_PATH) or ".", exist_ok=True)
     with db() as conn:
         conn.executescript(SCHEMA)
+        conn.executescript(ftc.SCHEMA)
+    if os.environ.get("FTC_IMPORT", "1") == "1":
+        ftc.start_background(connect)
+
+
+# Community reports (1 each) plus external complaints (FTC, last 90 days).
+SIGNALS = ("SELECT number, country, category, created AS at, 1 AS n FROM reports "
+           "UNION ALL SELECT number, country, category, day AS at, n FROM external WHERE day > ?")
+
+
+def _cutoff() -> int:
+    return int(time.time()) - ftc.WINDOW_DAYS * 86400
+
+
+_AGG_CACHE: dict = {}
+AGG_TTL = int(os.environ.get("AGG_TTL", "600"))
+
+
+def aggregate(conn, country: str, since: int = 0) -> dict:
+    """{number: (total, main category)} for a country, allowlisted numbers excluded.
+    Full-window results are cached for AGG_TTL seconds (the US list is large)."""
+    key = (country, since)
+    hit = _AGG_CACHE.get(key)
+    if since == 0 and hit and time.time() - hit[0] < AGG_TTL:
+        return hit[1]
+    result = _aggregate(conn, country, since)
+    if since == 0:
+        _AGG_CACHE[key] = (time.time(), result)
+    return result
+
+
+def _aggregate(conn, country: str, since: int) -> dict:
+    rows = conn.execute(
+        f"SELECT number, category, SUM(n) AS n FROM ({SIGNALS}) WHERE country=? AND at > ? "
+        "AND number NOT IN (SELECT number FROM allowlist) GROUP BY number, category",
+        (_cutoff(), country, since)).fetchall()
+    out: dict = {}
+    for r in rows:
+        total, cat, best = out.get(r["number"], (0, None, 0))
+        if r["n"] > best:
+            cat, best = r["category"], r["n"]
+        out[r["number"]] = (total + r["n"], cat, best)
+    return {k: (v[0], v[1]) for k, v in out.items()}
 
 
 # ----------------------------------------------------------------------- helpers
@@ -162,6 +206,7 @@ def report(body: ReportIn, request: Request):
             "INSERT INTO reports(number,country,category,comment,install,ip,created) VALUES(?,?,?,?,?,?,?) "
             "ON CONFLICT(number,install) DO UPDATE SET category=excluded.category, comment=excluded.comment, created=excluded.created",
             (number, country, category, clean_comment(body.comment), install, ip, int(time.time())))
+    _AGG_CACHE.pop((country, 0), None)
     return {"ok": True, "number": number, "country": country}
 
 
@@ -172,8 +217,10 @@ def summary(conn, number: str) -> dict:
     cats: dict[str, int] = {}
     for r in rows:
         cats[r["category"]] = cats.get(r["category"], 0) + 1
+    for r in conn.execute("SELECT category, SUM(n) AS n FROM external WHERE number=? AND day > ? GROUP BY category", (number, _cutoff())):
+        cats[r["category"]] = cats.get(r["category"], 0) + r["n"]
     allowed = conn.execute("SELECT 1 FROM allowlist WHERE number=?", (number,)).fetchone() is not None
-    reporters = 0 if allowed else len(rows)
+    reporters = 0 if allowed else sum(cats.values())
     return {
         "number": number,
         "reports": reporters,
@@ -215,13 +262,8 @@ def country_list(country: str, request: Request, response: Response):
     Compact rows: [e164, category, score]. Cached by the client with ETag."""
     country = country.upper()[:2]
     with db() as conn:
-        rows = conn.execute(
-            "SELECT r.number, COUNT(*) AS n, MAX(r.created) AS last, "
-            "(SELECT category FROM reports x WHERE x.number=r.number GROUP BY category ORDER BY COUNT(*) DESC LIMIT 1) AS cat "
-            "FROM reports r WHERE r.country=? AND r.number NOT IN (SELECT number FROM allowlist) "
-            "GROUP BY r.number HAVING COUNT(*) >= ? ORDER BY r.number",
-            (country, REPORT_THRESHOLD)).fetchall()
-    items = [[r["number"], r["cat"], score_for(r["n"])] for r in rows]
+        totals = aggregate(conn, country)
+    items = [[num, cat, score_for(n)] for num, (n, cat) in sorted(totals.items()) if n >= REPORT_THRESHOLD]
     etag = '"' + hashlib.sha1(repr(items).encode()).hexdigest()[:16] + '"'
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304)
@@ -233,14 +275,25 @@ def country_list(country: str, request: Request, response: Response):
 @app.get("/v1/stats/{country}")
 def stats(country: str):
     country = country.upper()[:2]
+    hit = _STATS_CACHE.get(country)
+    if hit and time.time() - hit[0] < AGG_TTL:
+        return hit[1]
+    result = _stats(country)
+    _STATS_CACHE[country] = (time.time(), result)
+    return result
+
+
+_STATS_CACHE: dict = {}
+
+
+def _stats(country: str) -> dict:
     week = int(time.time()) - 7 * 86400
     with db() as conn:
-        spam = conn.execute("SELECT COUNT(*) FROM (SELECT number FROM reports WHERE country=? GROUP BY number HAVING COUNT(*)>=?)", (country, REPORT_THRESHOLD)).fetchone()[0]
-        reports_week = conn.execute("SELECT COUNT(*) FROM reports WHERE country=? AND created>?", (country, week)).fetchone()[0]
-        top = conn.execute("SELECT number, COUNT(*) n FROM reports WHERE country=? AND created>? GROUP BY number HAVING n>=? ORDER BY n DESC LIMIT 10",
-                           (country, week, REPORT_THRESHOLD)).fetchall()
-    return {"country": country, "spamNumbers": spam, "reportsThisWeek": reports_week,
-            "trending": [{"number": r["number"], "reports": r["n"], "score": score_for(r["n"])} for r in top]}
+        spam = sum(1 for n, _ in aggregate(conn, country).values() if n >= REPORT_THRESHOLD)
+        recent = aggregate(conn, country, since=week)
+    top = sorted(((n, num) for num, (n, _) in recent.items() if n >= REPORT_THRESHOLD), reverse=True)[:10]
+    return {"country": country, "spamNumbers": spam, "reportsThisWeek": sum(n for n, _ in recent.values()),
+            "trending": [{"number": num, "reports": n, "score": score_for(n)} for n, num in top]}
 
 
 # ------------------------------------------------------- removal requests (GDPR)
