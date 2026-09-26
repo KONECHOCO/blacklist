@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'app_config.dart';
 import 'services/api.dart';
 
 /// Store screenshots only (SCREENSHOT_MODE): believable per-language demo data.
@@ -10,6 +11,9 @@ class Demo {
   static int get tab => int.tryParse(query['tab'] ?? '') ?? 0;
   static bool get reportSheet => query['sheet'] == 'report';
   static int get listTab => int.tryParse(query['list'] ?? '') ?? 0;
+
+  /// In-app purchase review screenshot: show the "Remove ads" section.
+  static bool get iapShot => screenshotMode && query['iap'] == '1';
 
   static const _countries = {
     'it': 'IT', 'en': 'US', 'fr': 'FR', 'de': 'DE', 'es': 'ES', 'pt': 'PT', 'nl': 'NL', 'pl': 'PL',

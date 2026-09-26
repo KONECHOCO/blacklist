@@ -1,0 +1,10 @@
+import { createRequire } from 'node:module'
+const require = createRequire(process.env.PLAYWRIGHT_FROM)
+const { chromium } = require('playwright-core')
+const b = await chromium.launch({ channel: 'chrome' })
+const c = await b.newContext({ viewport: { width: 430, height: 932 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, locale: 'en' })
+const p = await c.newPage()
+await p.goto('http://127.0.0.1:8765/?lang=en&tab=3&iap=1', { waitUntil: 'networkidle' })
+await p.waitForTimeout(4000)
+await p.screenshot({ path: 'store/iap-review.png' })
+await b.close()

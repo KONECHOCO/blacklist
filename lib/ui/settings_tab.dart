@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../app_config.dart';
+import '../demo.dart';
 import '../l10n.dart';
 import '../monetization/premium.dart';
 import '../services/app_state.dart';
@@ -39,7 +40,7 @@ class SettingsTab extends StatelessWidget {
               onTap: () => _pickLanguage(context, state),
             ),
           ]),
-          if (premium.supported)
+          if (premium.supported || Demo.iapShot)
             Section(
               title: t.s('ads_title'),
               children: [
@@ -51,7 +52,7 @@ class SettingsTab extends StatelessWidget {
                     title: Text(t.s('remove_ads')),
                     trailing: premium.busy
                         ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                        : Text(premium.price ?? '', style: const TextStyle(fontWeight: FontWeight.w700)),
+                        : Text(premium.price ?? (Demo.iapShot ? '2,99 €' : ''), style: const TextStyle(fontWeight: FontWeight.w700)),
                     onTap: premium.busy ? null : () => _run(context, premium.buy),
                   ),
                 const Divider(height: 1, indent: 16),
