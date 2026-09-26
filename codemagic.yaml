@@ -19,6 +19,9 @@ workflows:
       vars:
         BUNDLE_ID: com.konechoco.blacklist
         API_BASE: https://blacklist.ikonetsolutions.com
+        UNITY_GAME_ID_IOS: "800381589"
+        IOS_ADMOB_APP_ID: ca-app-pub-1151868778464777~8442417555
+        ADMOB_BANNER_IOS: ca-app-pub-1151868778464777/9180784156
     cache:
       cache_paths:
         - $HOME/.pub-cache
