@@ -34,6 +34,7 @@ class L10n {
 
 const _strings = <String, Map<String, String>>{
   'en': {
+    'flag_comment': 'Report offensive comment', 'comment_flagged': 'Thanks, the comment was reported and hidden for you.',
     'tab_protection': 'Protection', 'tab_lookup': 'Lookup', 'tab_lists': 'My lists', 'tab_settings': 'Settings',
     'status_on': 'Protection on', 'status_on_body': 'Spam calls from the community list are handled automatically.',
     'status_off': 'Protection off', 'status_off_android': 'Set Blacklist as your call screening app to block spam calls.',
@@ -79,6 +80,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Debt collector', 'cat_sales': 'Aggressive sales', 'cat_robocall': 'Robocall', 'cat_silent': 'Silent call', 'cat_other': 'Other',
   },
   'it': {
+    'flag_comment': 'Segnala commento offensivo', 'comment_flagged': 'Grazie, il commento è stato segnalato e nascosto per te.',
     'tab_protection': 'Protezione', 'tab_lookup': 'Cerca', 'tab_lists': 'Le mie liste', 'tab_settings': 'Impostazioni',
     'status_on': 'Protezione attiva', 'status_on_body': 'Le chiamate spam della lista della community vengono gestite in automatico.',
     'status_off': 'Protezione disattivata', 'status_off_android': 'Imposta Blacklist come app di filtro chiamate per bloccare lo spam.',
@@ -124,6 +126,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Recupero crediti', 'cat_sales': 'Vendita aggressiva', 'cat_robocall': 'Chiamata automatica', 'cat_silent': 'Chiamata muta', 'cat_other': 'Altro',
   },
   'fr': {
+    'flag_comment': 'Signaler un commentaire offensant', 'comment_flagged': 'Merci, le commentaire a été signalé et masqué pour vous.',
     'tab_protection': 'Protection', 'tab_lookup': 'Recherche', 'tab_lists': 'Mes listes', 'tab_settings': 'Réglages',
     'status_on': 'Protection active', 'status_on_body': 'Les appels indésirables de la liste communautaire sont gérés automatiquement.',
     'status_off': 'Protection désactivée', 'status_off_android': 'Choisissez Blacklist comme app de filtrage des appels pour bloquer le spam.',
@@ -169,6 +172,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Recouvrement', 'cat_sales': 'Vente agressive', 'cat_robocall': 'Appel automatique', 'cat_silent': 'Appel muet', 'cat_other': 'Autre',
   },
   'de': {
+    'flag_comment': 'Anstößigen Kommentar melden', 'comment_flagged': 'Danke, der Kommentar wurde gemeldet und für dich ausgeblendet.',
     'tab_protection': 'Schutz', 'tab_lookup': 'Suche', 'tab_lists': 'Meine Listen', 'tab_settings': 'Einstellungen',
     'status_on': 'Schutz aktiv', 'status_on_body': 'Spam-Anrufe aus der Community-Liste werden automatisch behandelt.',
     'status_off': 'Schutz aus', 'status_off_android': 'Lege Blacklist als App zum Filtern von Anrufen fest, um Spam zu blockieren.',
@@ -214,6 +218,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Inkasso', 'cat_sales': 'Aggressiver Verkauf', 'cat_robocall': 'Automatischer Anruf', 'cat_silent': 'Stummer Anruf', 'cat_other': 'Sonstiges',
   },
   'es': {
+    'flag_comment': 'Denunciar comentario ofensivo', 'comment_flagged': 'Gracias, el comentario se ha denunciado y ocultado para ti.',
     'tab_protection': 'Protección', 'tab_lookup': 'Buscar', 'tab_lists': 'Mis listas', 'tab_settings': 'Ajustes',
     'status_on': 'Protección activa', 'status_on_body': 'Las llamadas spam de la lista de la comunidad se gestionan automáticamente.',
     'status_off': 'Protección desactivada', 'status_off_android': 'Elige Blacklist como app de filtro de llamadas para bloquear el spam.',
@@ -259,6 +264,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Cobro de deudas', 'cat_sales': 'Venta agresiva', 'cat_robocall': 'Llamada automática', 'cat_silent': 'Llamada muda', 'cat_other': 'Otro',
   },
   'pt': {
+    'flag_comment': 'Denunciar comentário ofensivo', 'comment_flagged': 'Obrigado, o comentário foi denunciado e ocultado para si.',
     'tab_protection': 'Proteção', 'tab_lookup': 'Pesquisar', 'tab_lists': 'As minhas listas', 'tab_settings': 'Definições',
     'status_on': 'Proteção ativa', 'status_on_body': 'As chamadas spam da lista da comunidade são tratadas automaticamente.',
     'status_off': 'Proteção desativada', 'status_off_android': 'Defina o Blacklist como app de filtragem de chamadas para bloquear spam.',
@@ -304,6 +310,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Cobrança de dívidas', 'cat_sales': 'Venda agressiva', 'cat_robocall': 'Chamada automática', 'cat_silent': 'Chamada muda', 'cat_other': 'Outro',
   },
   'nl': {
+    'flag_comment': 'Aanstootgevende reactie melden', 'comment_flagged': 'Bedankt, de reactie is gemeld en voor jou verborgen.',
     'tab_protection': 'Bescherming', 'tab_lookup': 'Zoeken', 'tab_lists': 'Mijn lijsten', 'tab_settings': 'Instellingen',
     'status_on': 'Bescherming aan', 'status_on_body': 'Spamoproepen uit de communitylijst worden automatisch afgehandeld.',
     'status_off': 'Bescherming uit', 'status_off_android': 'Stel Blacklist in als app voor oproepfiltering om spam te blokkeren.',
@@ -349,6 +356,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Incasso', 'cat_sales': 'Agressieve verkoop', 'cat_robocall': 'Automatische oproep', 'cat_silent': 'Stille oproep', 'cat_other': 'Overig',
   },
   'pl': {
+    'flag_comment': 'Zgłoś obraźliwy komentarz', 'comment_flagged': 'Dziękujemy, komentarz został zgłoszony i ukryty.',
     'tab_protection': 'Ochrona', 'tab_lookup': 'Szukaj', 'tab_lists': 'Moje listy', 'tab_settings': 'Ustawienia',
     'status_on': 'Ochrona włączona', 'status_on_body': 'Połączenia spamowe z listy społeczności są obsługiwane automatycznie.',
     'status_off': 'Ochrona wyłączona', 'status_off_android': 'Ustaw Blacklist jako aplikację filtrującą połączenia, aby blokować spam.',
@@ -394,6 +402,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Windykacja', 'cat_sales': 'Agresywna sprzedaż', 'cat_robocall': 'Połączenie automatyczne', 'cat_silent': 'Głuchy telefon', 'cat_other': 'Inne',
   },
   'ro': {
+    'flag_comment': 'Raportează comentariu jignitor', 'comment_flagged': 'Mulțumim, comentariul a fost raportat și ascuns pentru tine.',
     'tab_protection': 'Protecție', 'tab_lookup': 'Caută', 'tab_lists': 'Listele mele', 'tab_settings': 'Setări',
     'status_on': 'Protecție activă', 'status_on_body': 'Apelurile spam din lista comunității sunt gestionate automat.',
     'status_off': 'Protecție dezactivată', 'status_off_android': 'Setează Blacklist ca aplicație de filtrare a apelurilor pentru a bloca spamul.',
@@ -439,6 +448,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Recuperări datorii', 'cat_sales': 'Vânzare agresivă', 'cat_robocall': 'Apel automat', 'cat_silent': 'Apel mut', 'cat_other': 'Altele',
   },
   'sv': {
+    'flag_comment': 'Anmäl stötande kommentar', 'comment_flagged': 'Tack, kommentaren har anmälts och dolts för dig.',
     'tab_protection': 'Skydd', 'tab_lookup': 'Sök', 'tab_lists': 'Mina listor', 'tab_settings': 'Inställningar',
     'status_on': 'Skydd på', 'status_on_body': 'Spamsamtal från communityns lista hanteras automatiskt.',
     'status_off': 'Skydd av', 'status_off_android': 'Välj Blacklist som app för samtalsfiltrering för att blockera spam.',
@@ -484,6 +494,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Inkasso', 'cat_sales': 'Aggressiv försäljning', 'cat_robocall': 'Automatiskt samtal', 'cat_silent': 'Tyst samtal', 'cat_other': 'Övrigt',
   },
   'ru': {
+    'flag_comment': 'Пожаловаться на комментарий', 'comment_flagged': 'Спасибо, жалоба отправлена, комментарий скрыт.',
     'tab_protection': 'Защита', 'tab_lookup': 'Поиск', 'tab_lists': 'Мои списки', 'tab_settings': 'Настройки',
     'status_on': 'Защита включена', 'status_on_body': 'Спам-звонки из списка сообщества обрабатываются автоматически.',
     'status_off': 'Защита выключена', 'status_off_android': 'Назначьте Blacklist приложением для фильтрации звонков, чтобы блокировать спам.',
@@ -529,6 +540,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Коллекторы', 'cat_sales': 'Навязчивые продажи', 'cat_robocall': 'Автоматический звонок', 'cat_silent': 'Молчащий звонок', 'cat_other': 'Другое',
   },
   'uk': {
+    'flag_comment': 'Поскаржитися на коментар', 'comment_flagged': 'Дякуємо, скаргу надіслано, коментар приховано.',
     'tab_protection': 'Захист', 'tab_lookup': 'Пошук', 'tab_lists': 'Мої списки', 'tab_settings': 'Налаштування',
     'status_on': 'Захист увімкнено', 'status_on_body': 'Спам-дзвінки зі списку спільноти обробляються автоматично.',
     'status_off': 'Захист вимкнено', 'status_off_android': 'Призначте Blacklist застосунком для фільтрації дзвінків, щоб блокувати спам.',
@@ -574,6 +586,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Колектори', 'cat_sales': 'Нав’язливі продажі', 'cat_robocall': 'Автоматичний дзвінок', 'cat_silent': 'Мовчазний дзвінок', 'cat_other': 'Інше',
   },
   'tr': {
+    'flag_comment': 'Rahatsız edici yorumu bildir', 'comment_flagged': 'Teşekkürler, yorum bildirildi ve sizin için gizlendi.',
     'tab_protection': 'Koruma', 'tab_lookup': 'Ara', 'tab_lists': 'Listelerim', 'tab_settings': 'Ayarlar',
     'status_on': 'Koruma açık', 'status_on_body': 'Topluluk listesindeki spam aramalar otomatik yönetilir.',
     'status_off': 'Koruma kapalı', 'status_off_android': 'Spam aramaları engellemek için Blacklist\'i arama filtreleme uygulaması yapın.',
@@ -619,6 +632,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'Borç tahsilatı', 'cat_sales': 'Agresif satış', 'cat_robocall': 'Otomatik arama', 'cat_silent': 'Sessiz arama', 'cat_other': 'Diğer',
   },
   'ar': {
+    'flag_comment': 'الإبلاغ عن تعليق مسيء', 'comment_flagged': 'شكرًا، تم الإبلاغ عن التعليق وإخفاؤه لك.',
     'tab_protection': 'الحماية', 'tab_lookup': 'بحث', 'tab_lists': 'قوائمي', 'tab_settings': 'الإعدادات',
     'status_on': 'الحماية مفعّلة', 'status_on_body': 'تُعالَج مكالمات الإزعاج من قائمة المجتمع تلقائيًا.',
     'status_off': 'الحماية متوقفة', 'status_off_android': 'اجعل Blacklist تطبيق فحص المكالمات لحظر مكالمات الإزعاج.',
@@ -664,6 +678,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': 'تحصيل ديون', 'cat_sales': 'بيع مُلحّ', 'cat_robocall': 'مكالمة آلية', 'cat_silent': 'مكالمة صامتة', 'cat_other': 'أخرى',
   },
   'zh': {
+    'flag_comment': '举报不当评论', 'comment_flagged': '谢谢，该评论已被举报并对你隐藏。',
     'tab_protection': '防护', 'tab_lookup': '查询', 'tab_lists': '我的名单', 'tab_settings': '设置',
     'status_on': '防护已开启', 'status_on_body': '社区名单中的骚扰电话会被自动处理。',
     'status_off': '防护已关闭', 'status_off_android': '将 Blacklist 设为来电筛选应用，即可拦截骚扰电话。',
@@ -709,6 +724,7 @@ const _strings = <String, Map<String, String>>{
     'cat_debt': '催收', 'cat_sales': '强行推销', 'cat_robocall': '机器人来电', 'cat_silent': '无声来电', 'cat_other': '其他',
   },
   'ja': {
+    'flag_comment': '不適切なコメントを報告', 'comment_flagged': 'ありがとうございます。コメントを報告し、非表示にしました。',
     'tab_protection': '保護', 'tab_lookup': '検索', 'tab_lists': 'マイリスト', 'tab_settings': '設定',
     'status_on': '保護オン', 'status_on_body': 'コミュニティリストの迷惑電話は自動で処理されます。',
     'status_off': '保護オフ', 'status_off_android': 'Blacklist を通話スクリーニングアプリに設定すると迷惑電話を着信拒否できます。',

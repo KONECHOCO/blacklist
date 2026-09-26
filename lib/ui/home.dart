@@ -8,6 +8,7 @@ import '../l10n.dart';
 import '../monetization/ads.dart';
 import '../services/app_state.dart';
 import '../services/native.dart';
+import '../services/phone.dart';
 import 'lists_tab.dart';
 import 'lookup_tab.dart';
 import 'protection_tab.dart';
@@ -36,7 +37,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   Future<void> _start() async {
     if (screenshotMode) {
       if (Demo.reportSheet) {
-        showReportSheet(context, number: Demo.lookupNumber, category: 'scam', comment: Demo.reportComment);
+        showReportSheet(context, number: Phone.display(Demo.lookupNumber, Demo.country), category: 'telemarketing', comment: Demo.reportComment);
       }
       return;
     }
@@ -81,7 +82,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     final t = L10n.of(context);
     const pages = [ProtectionTab(), LookupTab(), ListsTab(), SettingsTab()];
     return Scaffold(
-      body: IndexedStack(index: _tab, children: pages),
+      // Phone-width column on iPad and tablets.
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: IndexedStack(index: _tab, children: pages),
+        ),
+      ),
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

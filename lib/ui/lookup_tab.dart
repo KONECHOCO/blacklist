@@ -90,6 +90,7 @@ class _LookupTabState extends State<LookupTab> {
             child: TextField(
               controller: _query,
               keyboardType: TextInputType.phone,
+              textDirection: TextDirection.ltr,
               textInputAction: TextInputAction.search,
               onSubmitted: (_) => _search(),
               decoration: InputDecoration(
@@ -119,6 +120,50 @@ class _LookupTabState extends State<LookupTab> {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// A community comment with a flag button (offensive content is hidden after a few flags).
+class _Comment extends StatefulWidget {
+  const _Comment({required this.comment});
+  final Map<String, dynamic> comment;
+
+  @override
+  State<_Comment> createState() => _CommentState();
+}
+
+class _CommentState extends State<_Comment> {
+  bool _hidden = false;
+
+  Future<void> _flag() async {
+    final t = L10n.of(context);
+    setState(() => _hidden = true);
+    toast(context, t.s('comment_flagged'));
+    final id = (widget.comment['id'] as num?)?.toInt();
+    if (id == null) return;
+    try {
+      await Api.instance.flagComment(id, AppState.instance.install);
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hidden) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Padding(padding: EdgeInsets.only(top: 2), child: Icon(Icons.format_quote, size: 18)),
+        const SizedBox(width: 6),
+        Expanded(child: Text('${widget.comment['text']}')),
+        IconButton(
+          tooltip: L10n.of(context).s('flag_comment'),
+          visualDensity: VisualDensity.compact,
+          iconSize: 18,
+          icon: const Icon(Icons.outlined_flag),
+          onPressed: _flag,
+        ),
+      ]),
     );
   }
 }
@@ -168,15 +213,7 @@ class _Result extends StatelessWidget {
         if (info.comments.isNotEmpty) ...[
           const SizedBox(height: 14),
           Text(t.s('comments'), style: theme.textTheme.titleSmall),
-          for (final c in info.comments)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Icon(Icons.format_quote, size: 18),
-                const SizedBox(width: 6),
-                Expanded(child: Text('${c['text']}')),
-              ]),
-            ),
+          for (final c in info.comments) _Comment(comment: c),
         ],
         const SizedBox(height: 16),
         Wrap(spacing: 8, runSpacing: 8, children: [

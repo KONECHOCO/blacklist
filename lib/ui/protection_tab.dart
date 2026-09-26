@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n.dart';
@@ -175,7 +176,7 @@ class _CommunityCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(t.f('db_numbers', {'n': state.community.length}), style: theme.textTheme.titleMedium),
+                  Text(t.f('db_numbers', {'n': NumberFormat.decimalPattern(t.code).format(state.community.length)}), style: theme.textTheme.titleMedium),
                   const SizedBox(height: 2),
                   Text(state.syncError != null ? t.s('sync_error') : updated,
                       style: theme.textTheme.bodySmall?.copyWith(

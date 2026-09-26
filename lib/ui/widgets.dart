@@ -61,7 +61,8 @@ String flag(String country) => country.length != 2
     ? '🌐'
     : String.fromCharCodes(country.toUpperCase().codeUnits.map((c) => 0x1F1E6 + c - 65));
 
-String prettyNumber(String e164, String home) => Phone.display(e164, home);
+/// Always left-to-right, also inside Arabic text.
+String prettyNumber(String e164, String home) => '\u2066${Phone.display(e164, home)}\u2069';
 
 String relativeTime(BuildContext context, DateTime at) {
   final locale = Localizations.localeOf(context).toString();

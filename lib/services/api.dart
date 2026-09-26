@@ -60,6 +60,14 @@ class Api {
     return NumberInfo(jsonDecode(r.body) as Map<String, dynamic>);
   }
 
+  /// Reports an offensive comment (hidden for everyone after a few reports).
+  Future<void> flagComment(int id, String install) async {
+    if (screenshotMode) return;
+    await _client
+        .post(_u('/v1/comments/flag'), headers: {'content-type': 'application/json'}, body: jsonEncode({'id': id, 'install': install}))
+        .timeout(_timeout);
+  }
+
   /// Null when unchanged since [etag] (HTTP 304).
   Future<CountryList?> countryList(String country, {String? etag}) async {
     final r = await _client

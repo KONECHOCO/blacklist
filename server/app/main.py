@@ -7,6 +7,7 @@ can't get someone else's number blocked. Anyone can ask for a removal (GDPR).
 import hashlib
 import math
 import os
+import re
 import sqlite3
 import time
 from contextlib import contextmanager
@@ -23,6 +24,7 @@ SALT = os.environ.get("HASH_SALT", "dev-salt")
 REPORT_THRESHOLD = int(os.environ.get("REPORT_THRESHOLD", "3"))
 MAX_REPORTS_PER_INSTALL_DAY = 40
 MAX_REPORTS_PER_IP_DAY = 120
+FLAGS_TO_HIDE = 2
 CATEGORIES = {"telemarketing", "scam", "trading", "survey", "debt", "sales", "silent", "robocall", "other"}
 
 app = FastAPI(title="Blacklist API", version="1.0")
@@ -54,6 +56,13 @@ CREATE TABLE IF NOT EXISTS removals (
 );
 -- Numbers that must never be published (approved removals, emergency lines...).
 CREATE TABLE IF NOT EXISTS allowlist (number TEXT PRIMARY KEY, note TEXT NOT NULL DEFAULT '');
+-- Users flag offensive comments; a comment flagged by FLAGS_TO_HIDE installs is hidden.
+CREATE TABLE IF NOT EXISTS comment_flags (
+  report INTEGER NOT NULL,
+  install TEXT NOT NULL,
+  created INTEGER NOT NULL,
+  UNIQUE(report, install)
+);
 """
 
 
@@ -82,6 +91,18 @@ def init_db():
 
 
 # ----------------------------------------------------------------------- helpers
+# Comments are shown to other users: no links, contacts or abuse (App Store 1.2).
+_BLOCKED_COMMENT = re.compile(
+    r"https?://|www\.|\.(com|net|org|it|fr|de|ru|io)\b|@|\+?\d[\d .-]{7,}\d"
+    r"|\b(fuck|shit|bitch|cunt|nigg|cazz|stronz|puttan|putain|salope|connard|scheiß|fotze|mierda|puta\b|coño|pendej|caralho|kurwa|chuj|блять|сука|хуй|пизд|orospu|siktir)",
+    re.IGNORECASE)
+
+
+def clean_comment(text: str) -> str:
+    text = " ".join(text.split())[:140]
+    return "" if _BLOCKED_COMMENT.search(text) else text
+
+
 def h(value: str) -> str:
     return hashlib.sha256(f"{SALT}:{value}".encode()).hexdigest()[:32]
 
@@ -140,12 +161,14 @@ def report(body: ReportIn, request: Request):
         conn.execute(
             "INSERT INTO reports(number,country,category,comment,install,ip,created) VALUES(?,?,?,?,?,?,?) "
             "ON CONFLICT(number,install) DO UPDATE SET category=excluded.category, comment=excluded.comment, created=excluded.created",
-            (number, country, category, body.comment.strip(), install, ip, int(time.time())))
+            (number, country, category, clean_comment(body.comment), install, ip, int(time.time())))
     return {"ok": True, "number": number, "country": country}
 
 
 def summary(conn, number: str) -> dict:
-    rows = conn.execute("SELECT category, comment, created FROM reports WHERE number=? ORDER BY created DESC", (number,)).fetchall()
+    rows = conn.execute(
+        "SELECT id, category, comment, created, (SELECT COUNT(*) FROM comment_flags f WHERE f.report=reports.id) AS flags "
+        "FROM reports WHERE number=? ORDER BY created DESC", (number,)).fetchall()
     cats: dict[str, int] = {}
     for r in rows:
         cats[r["category"]] = cats.get(r["category"], 0) + 1
@@ -159,8 +182,24 @@ def summary(conn, number: str) -> dict:
         "category": max(cats, key=cats.get) if cats and not allowed else None,
         "categories": {} if allowed else cats,
         "lastReportedAt": rows[0]["created"] if rows and not allowed else None,
-        "comments": [] if allowed else [{"category": r["category"], "text": r["comment"], "at": r["created"]} for r in rows if r["comment"]][:10],
+        "comments": [] if allowed else [{"id": r["id"], "category": r["category"], "text": r["comment"], "at": r["created"]}
+                                       for r in rows if r["comment"] and r["flags"] < FLAGS_TO_HIDE][:10],
     }
+
+
+class FlagIn(BaseModel):
+    id: int
+    install: str = Field(min_length=8, max_length=64)
+
+
+@app.post("/v1/comments/flag")
+def flag_comment(body: FlagIn):
+    """Report an offensive comment; hidden for everyone after FLAGS_TO_HIDE flags."""
+    with db() as conn:
+        if not conn.execute("SELECT 1 FROM reports WHERE id=? AND comment!=''", (body.id,)).fetchone():
+            raise HTTPException(404, "no such comment")
+        conn.execute("INSERT OR IGNORE INTO comment_flags(report, install, created) VALUES(?,?,?)", (body.id, h(body.install), int(time.time())))
+    return {"ok": True}
 
 
 @app.get("/v1/lookup")

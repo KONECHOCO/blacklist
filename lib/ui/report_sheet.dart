@@ -81,6 +81,7 @@ class _ReportSheetState extends State<_ReportSheet> {
             TextField(
               controller: _number,
               keyboardType: TextInputType.phone,
+              textDirection: TextDirection.ltr,
               autofocus: widget.initial == null,
               decoration: InputDecoration(
                 hintText: t.s('number_hint'),

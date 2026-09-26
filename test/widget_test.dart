@@ -51,5 +51,5 @@ String _englishKeysProbe(L10n en) => const [
       'empty_ranges', 'empty_allowed', 'range_hint', 'range_invalid', 'remove', 'language', 'language_system',
       'ads_title', 'remove_ads', 'restore', 'ad_free', 'purchase_failed', 'nothing_to_restore', 'purchase_unavailable',
       'privacy', 'removal_request', 'support', 'how_title', 'how_body', 'spam', 'version', 'notif_blocked',
-      'notif_silenced', 'notif_warn', 'notif_unknown', 'hidden_number', 'notif_user_rule',
+      'notif_silenced', 'notif_warn', 'notif_unknown', 'hidden_number', 'notif_user_rule', 'flag_comment', 'comment_flagged',
     ].map((k) => "'$k':").join(' ');
