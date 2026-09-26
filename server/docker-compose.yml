@@ -10,3 +10,14 @@ services:
       - ./data:/data
     ports:
       - "127.0.0.1:8094:8000"
+
+  # Database browser, reachable only through an SSH tunnel (see README "Database access").
+  blacklist-db:
+    image: coleifer/sqlite-web
+    container_name: blacklist-db
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+    command: sqlite_web --host 0.0.0.0 --port 8080 /data/blacklist.db
+    ports:
+      - "127.0.0.1:8095:8080"
