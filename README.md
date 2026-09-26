@@ -28,3 +28,15 @@ The server database (SQLite) can be browsed and queried with a web page that is
 Tables: `reports` (community reports), `external` (FTC, BNETZA, CURATED seed data),
 `removals` (GDPR removal requests), `allowlist` (numbers never published),
 `comment_flags` (flagged comments).
+
+## Backups
+
+Every night at 03:30 (cron of user `choco` on the VPS) `python -m app.backup` saves the data that
+cannot be rebuilt — `reports`, `comment_flags`, `removals`, `allowlist` — to
+`~/apps/blacklist-api/data/backups/blacklist_YYYY-MM-DD_HHMM.db.gz` (last 30 days kept).
+Imported data (FTC, BNetzA, curated seed) is re-imported automatically.
+
+Copy the latest backup to your PC:
+`scp "choco@23.88.32.156:apps/blacklist-api/data/backups/*.gz" .`
+
+Restore: `gunzip` the file and copy its tables back into `data/blacklist.db` (stop the container first).
