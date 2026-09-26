@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from typing import Optional
 
 import phonenumbers
-from . import ftc
+from . import curated, ftc
 from fastapi import FastAPI, Form, HTTPException, Request, Response
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse
@@ -23,6 +23,13 @@ from pydantic import BaseModel, Field
 DB_PATH = os.environ.get("DB_PATH", "/data/blacklist.db")
 SALT = os.environ.get("HASH_SALT", "dev-salt")
 REPORT_THRESHOLD = int(os.environ.get("REPORT_THRESHOLD", "3"))
+# Per-country overrides while a country's community is small, e.g. "IT=2,FR=2".
+THRESHOLDS = {k.strip().upper(): int(v) for k, v in
+              (pair.split("=") for pair in os.environ.get("REPORT_THRESHOLDS", "IT=2").split(",") if "=" in pair)}
+
+
+def threshold_for(country) -> int:
+    return THRESHOLDS.get((country or "").upper(), REPORT_THRESHOLD)
 MAX_REPORTS_PER_INSTALL_DAY = 40
 MAX_REPORTS_PER_IP_DAY = 120
 FLAGS_TO_HIDE = 2
@@ -90,13 +97,14 @@ def init_db():
     with db() as conn:
         conn.executescript(SCHEMA)
         conn.executescript(ftc.SCHEMA)
+        curated.load(conn, threshold_for)
     if os.environ.get("FTC_IMPORT", "1") == "1":
         ftc.start_background(connect)
 
 
 # Community reports (1 each) plus external complaints (FTC, last 90 days).
 SIGNALS = ("SELECT number, country, category, created AS at, 1 AS n FROM reports "
-           "UNION ALL SELECT number, country, category, day AS at, n FROM external WHERE day > ?")
+           "UNION ALL SELECT number, country, category, day AS at, n FROM external WHERE day > ? OR source='CURATED'")
 
 
 def _cutoff() -> int:
@@ -191,6 +199,9 @@ class ReportIn(BaseModel):
 @app.post("/v1/reports")
 def report(body: ReportIn, request: Request):
     number, country = normalize(body.number, body.region)
+    # Lists are per *receiving* country: a +44 number calling Italians belongs to IT's list.
+    if body.region and len(body.region) == 2 and body.region.isalpha():
+        country = body.region.upper()
     category = body.category if body.category in CATEGORIES else "other"
     install, ip = h(body.install), h(client_ip(request))
     day_ago = int(time.time()) - 86400
@@ -210,14 +221,14 @@ def report(body: ReportIn, request: Request):
     return {"ok": True, "number": number, "country": country}
 
 
-def summary(conn, number: str) -> dict:
+def summary(conn, number: str, country=None) -> dict:
     rows = conn.execute(
         "SELECT id, category, comment, created, (SELECT COUNT(*) FROM comment_flags f WHERE f.report=reports.id) AS flags "
         "FROM reports WHERE number=? ORDER BY created DESC", (number,)).fetchall()
     cats: dict[str, int] = {}
     for r in rows:
         cats[r["category"]] = cats.get(r["category"], 0) + 1
-    for r in conn.execute("SELECT category, SUM(n) AS n FROM external WHERE number=? AND day > ? GROUP BY category", (number, _cutoff())):
+    for r in conn.execute("SELECT category, SUM(n) AS n FROM external WHERE number=? AND (day > ? OR source='CURATED') GROUP BY category", (number, _cutoff())):
         cats[r["category"]] = cats.get(r["category"], 0) + r["n"]
     allowed = conn.execute("SELECT 1 FROM allowlist WHERE number=?", (number,)).fetchone() is not None
     reporters = 0 if allowed else sum(cats.values())
@@ -225,7 +236,7 @@ def summary(conn, number: str) -> dict:
         "number": number,
         "reports": reporters,
         "score": score_for(reporters),
-        "spam": reporters >= REPORT_THRESHOLD,
+        "spam": reporters >= threshold_for(country),
         "category": max(cats, key=cats.get) if cats and not allowed else None,
         "categories": {} if allowed else cats,
         "lastReportedAt": rows[0]["created"] if rows and not allowed else None,
@@ -253,7 +264,7 @@ def flag_comment(body: FlagIn):
 def lookup(number: str, region: Optional[str] = None):
     e164, country = normalize(number, region)
     with db() as conn:
-        return {**summary(conn, e164), "country": country}
+        return {**summary(conn, e164, country), "country": country}
 
 
 @app.get("/v1/lists/{country}")
@@ -263,13 +274,13 @@ def country_list(country: str, request: Request, response: Response):
     country = country.upper()[:2]
     with db() as conn:
         totals = aggregate(conn, country)
-    items = [[num, cat, score_for(n)] for num, (n, cat) in sorted(totals.items()) if n >= REPORT_THRESHOLD]
+    items = [[num, cat, score_for(n)] for num, (n, cat) in sorted(totals.items()) if n >= threshold_for(country)]
     etag = '"' + hashlib.sha1(repr(items).encode()).hexdigest()[:16] + '"'
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304)
     response.headers["ETag"] = etag
     response.headers["Cache-Control"] = "public, max-age=900"
-    return {"country": country, "generatedAt": int(time.time()), "threshold": REPORT_THRESHOLD, "numbers": items}
+    return {"country": country, "generatedAt": int(time.time()), "threshold": threshold_for(country), "numbers": items}
 
 
 @app.get("/v1/stats/{country}")
@@ -289,9 +300,9 @@ _STATS_CACHE: dict = {}
 def _stats(country: str) -> dict:
     week = int(time.time()) - 7 * 86400
     with db() as conn:
-        spam = sum(1 for n, _ in aggregate(conn, country).values() if n >= REPORT_THRESHOLD)
+        spam = sum(1 for n, _ in aggregate(conn, country).values() if n >= threshold_for(country))
         recent = aggregate(conn, country, since=week)
-    top = sorted(((n, num) for num, (n, _) in recent.items() if n >= REPORT_THRESHOLD), reverse=True)[:10]
+    top = sorted(((n, num) for num, (n, _) in recent.items() if n >= threshold_for(country)), reverse=True)[:10]
     return {"country": country, "spamNumbers": spam, "reportsThisWeek": sum(n for n, _ in recent.values()),
             "trending": [{"number": num, "reports": n, "score": score_for(n)} for n, num in top]}
 

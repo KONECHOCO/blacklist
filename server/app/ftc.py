@@ -118,7 +118,7 @@ def import_recent(connect, days: int = WINDOW_DAYS, today: date | None = None) -
             conn.close()
     conn = connect()
     try:
-        conn.execute("DELETE FROM external WHERE day < ?", (int(time.time()) - (WINDOW_DAYS + 5) * 86400,))
+        conn.execute("DELETE FROM external WHERE source=? AND day < ?", (SOURCE, int(time.time()) - (WINDOW_DAYS + 5) * 86400))
         conn.commit()
     finally:
         conn.close()

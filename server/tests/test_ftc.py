@@ -39,3 +39,15 @@ def test_import_counts_in_lookup_and_list(monkeypatch):
         assert ["+14342481967", "debt", s["score"]] in rows
         assert all(r[0] != "+17254652032" for r in rows)  # only one complaint
         assert c.get("/v1/stats/US").json()["spamNumbers"] >= 1
+
+
+def test_curated_seed_and_receiving_country():
+    with TestClient(app) as c:
+        s = c.get("/v1/lookup", params={"number": "055 4657828", "region": "IT"}).json()
+        assert s["spam"] and s["category"] == "scam"
+        rows = {r[0] for r in c.get("/v1/lists/IT").json()["numbers"]}
+        assert "+390554657828" in rows and "+441615647042" in rows  # foreign scam numbers calling Italy
+        assert "+390243333011" not in rows  # spoofed police number is never seeded
+        c.post("/v1/reports", json={"number": "+44 7700 900123", "region": "IT", "install": "install-uk01"})
+        c.post("/v1/reports", json={"number": "+44 7700 900123", "region": "IT", "install": "install-uk02"})
+        assert "+447700900123" in {r[0] for r in c.get("/v1/lists/IT").json()["numbers"]}  # IT threshold is 2
