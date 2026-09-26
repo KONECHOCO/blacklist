@@ -41,6 +41,15 @@ unless ext
   runner.add_dependency(ext)
 end
 
+# Flutter's "Thin Binary" script reads the app's Info.plist: embedding the extension
+# after it makes a build cycle, so the embed phase must come first.
+embed = runner.copy_files_build_phases.find { |p| p.name == 'Embed Foundation Extensions' }
+thin = runner.shell_script_build_phases.find { |p| p.name == 'Thin Binary' }
+if embed && thin && runner.build_phases.index(embed) > runner.build_phases.index(thin)
+  runner.build_phases.delete(embed)
+  runner.build_phases.insert(runner.build_phases.index(thin), embed)
+end
+
 flutter_group = project.main_group.find_subpath('Flutter', false)
 xcconfig = flutter_group.files.find { |f| f.path == 'Flutter/Extension.xcconfig' } || flutter_group.new_reference('Flutter/Extension.xcconfig')
 
