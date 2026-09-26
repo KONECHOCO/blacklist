@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from typing import Optional
 
 import phonenumbers
-from . import curated, ftc
+from . import bnetza, curated, ftc
 from fastapi import FastAPI, Form, HTTPException, Request, Response
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse
@@ -100,11 +100,12 @@ def init_db():
         curated.load(conn, threshold_for)
     if os.environ.get("FTC_IMPORT", "1") == "1":
         ftc.start_background(connect)
+        bnetza.start_background(connect, threshold_for)
 
 
 # Community reports (1 each) plus external complaints (FTC, last 90 days).
 SIGNALS = ("SELECT number, country, category, created AS at, 1 AS n FROM reports "
-           "UNION ALL SELECT number, country, category, day AS at, n FROM external WHERE day > ? OR source='CURATED'")
+           "UNION ALL SELECT number, country, category, day AS at, n FROM external WHERE day > ? OR source IN ('CURATED','BNETZA')")
 
 
 def _cutoff() -> int:
@@ -228,7 +229,7 @@ def summary(conn, number: str, country=None) -> dict:
     cats: dict[str, int] = {}
     for r in rows:
         cats[r["category"]] = cats.get(r["category"], 0) + 1
-    for r in conn.execute("SELECT category, SUM(n) AS n FROM external WHERE number=? AND (day > ? OR source='CURATED') GROUP BY category", (number, _cutoff())):
+    for r in conn.execute("SELECT category, SUM(n) AS n FROM external WHERE number=? AND (day > ? OR source IN ('CURATED','BNETZA')) GROUP BY category", (number, _cutoff())):
         cats[r["category"]] = cats.get(r["category"], 0) + r["n"]
     allowed = conn.execute("SELECT 1 FROM allowlist WHERE number=?", (number,)).fetchone() is not None
     reporters = 0 if allowed else sum(cats.values())

@@ -51,3 +51,18 @@ def test_curated_seed_and_receiving_country():
         c.post("/v1/reports", json={"number": "+44 7700 900123", "region": "IT", "install": "install-uk01"})
         c.post("/v1/reports", json={"number": "+44 7700 900123", "region": "IT", "install": "install-uk02"})
         assert "+447700900123" in {r[0] for r in c.get("/v1/lists/IT").json()["numbers"]}  # IT threshold is 2
+
+
+def test_bnetza_parse():
+    from app import bnetza
+    text = """Bescheid vom Rufnummer Kategorie Maßnahme
+24.09.2026
+030544480600, 030544480611,
+030544480612
+Telefonie-Dialer Abschaltung der Rufnummern zum 01.10.2026
+23.09.2026 01631143952 Spam-Messenger Abschaltung
+22.09.2026 0900123456 bis 0900123499 Sonstiges Abschaltung"""
+    got = bnetza.parse(text)
+    assert got["+4930544480600"] == "robocall" and got["+4930544480612"] == "robocall"
+    assert got["+491631143952"] == "scam"
+    assert not any(k.startswith("+49900123") for k in got)  # ranges skipped
