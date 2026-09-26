@@ -7,19 +7,21 @@ import '../services/phone.dart';
 import 'widgets.dart';
 
 /// One-tap spam report: number, category chips, optional short description.
-Future<void> showReportSheet(BuildContext context, {String? number}) {
+Future<void> showReportSheet(BuildContext context, {String? number, String category = 'telemarketing', String comment = ''}) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    builder: (_) => _ReportSheet(initial: number),
+    builder: (_) => _ReportSheet(initial: number, category: category, comment: comment),
   );
 }
 
 class _ReportSheet extends StatefulWidget {
-  const _ReportSheet({this.initial});
+  const _ReportSheet({this.initial, required this.category, required this.comment});
   final String? initial;
+  final String category;
+  final String comment;
 
   @override
   State<_ReportSheet> createState() => _ReportSheetState();
@@ -27,8 +29,8 @@ class _ReportSheet extends StatefulWidget {
 
 class _ReportSheetState extends State<_ReportSheet> {
   late final _number = TextEditingController(text: widget.initial ?? '');
-  final _comment = TextEditingController();
-  String _category = 'telemarketing';
+  late final _comment = TextEditingController(text: widget.comment);
+  late String _category = widget.category;
   bool _sending = false;
   String? _error;
 

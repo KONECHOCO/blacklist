@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../app_config.dart';
+import '../demo.dart';
 import '../l10n.dart';
 import '../monetization/ads.dart';
 import '../services/app_state.dart';
@@ -20,7 +22,7 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
-  int _tab = 0;
+  int _tab = screenshotMode ? Demo.tab : 0;
   StreamSubscription<String>? _reports;
 
   @override
@@ -32,6 +34,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 
   Future<void> _start() async {
+    if (screenshotMode) {
+      if (Demo.reportSheet) {
+        showReportSheet(context, number: Demo.lookupNumber, category: 'scam', comment: Demo.reportComment);
+      }
+      return;
+    }
     final state = AppState.instance;
     await state.refreshStatus();
     await state.apply();

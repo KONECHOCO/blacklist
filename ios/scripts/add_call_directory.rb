@@ -42,7 +42,7 @@ unless ext
 end
 
 flutter_group = project.main_group.find_subpath('Flutter', false)
-xcconfig = flutter_group.files.find { |f| f.path == 'Extension.xcconfig' } || flutter_group.new_reference('Extension.xcconfig')
+xcconfig = flutter_group.files.find { |f| f.path == 'Flutter/Extension.xcconfig' } || flutter_group.new_reference('Flutter/Extension.xcconfig')
 
 ext.build_configurations.each do |c|
   s = c.build_settings

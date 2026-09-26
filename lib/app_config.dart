@@ -9,6 +9,9 @@ const admobBannerAndroid = String.fromEnvironment('ADMOB_BANNER_ANDROID');
 /// Store screenshots: no ads, no store calls, demo data.
 const screenshotMode = bool.fromEnvironment('SCREENSHOT_MODE');
 
+/// Which platform's UI to render in screenshot mode (the web build has neither).
+const screenshotPlatform = String.fromEnvironment('SCREENSHOT_PLATFORM', defaultValue: 'ios');
+
 const removeAdsProductId = 'com.konechoco.blacklist.removeads';
 const privacyUrl = 'https://konechoco.github.io/blacklist/privacy-policy.html';
 const supportUrl = 'https://konechoco.github.io/blacklist/support.html';

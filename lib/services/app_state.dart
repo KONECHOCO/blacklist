@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../app_config.dart';
+import '../demo.dart';
 import '../l10n.dart';
 import 'api.dart';
 import 'native.dart';
@@ -59,6 +61,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    if (screenshotMode) return _seedDemo();
     _listFile = File('${(await getApplicationSupportDirectory()).path}/community.json');
     install = _prefs.getString('install') ?? _newInstallId();
     await _prefs.setString('install', install);
@@ -83,6 +86,22 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _seedDemo() {
+    install = 'screenshots';
+    country = Demo.country;
+    language = Demo.lang;
+    community = Demo.community();
+    listUpdatedAt = DateTime.now().subtract(const Duration(minutes: 12)).millisecondsSinceEpoch;
+    stats = Demo.stats();
+    for (var i = 5; i < 9; i++) {
+      blocked[Demo.number(i)] = categories[i % 4];
+    }
+    ranges.add('${Demo.number(9).substring(0, Demo.number(9).length - 4)}****');
+    allowed.add(Demo.number(12));
+    active = true;
+    notifyListeners();
+  }
+
   String _newInstallId() {
     final r = Random.secure();
     return List.generate(24, (_) => r.nextInt(36).toRadixString(36)).join();
@@ -96,7 +115,7 @@ class AppState extends ChangeNotifier {
   // ----------------------------------------------------------------- sync
   /// Downloads the country's community list (only if changed) and re-applies the rules.
   Future<void> sync({bool force = false}) async {
-    if (syncing) return;
+    if (syncing || screenshotMode) return;
     syncing = true;
     syncError = null;
     notifyListeners();
@@ -121,6 +140,7 @@ class AppState extends ChangeNotifier {
   bool get needsSync => DateTime.now().millisecondsSinceEpoch - listUpdatedAt > const Duration(hours: 6).inMilliseconds;
 
   Future<void> refreshStatus() async {
+    if (screenshotMode) return;
     active = await Native.instance.isActive();
     final raw = await Native.instance.readLog();
     log = raw
@@ -142,6 +162,7 @@ class AppState extends ChangeNotifier {
 
   // ------------------------------------------------------ rules to native
   Future<void> apply() async {
+    if (screenshotMode) return;
     final t = L10n.forCode(language ?? PlatformDispatcher.instance.locale.languageCode);
     if (Native.instance.isAndroid) {
       final spam = <String, List<Object>>{};

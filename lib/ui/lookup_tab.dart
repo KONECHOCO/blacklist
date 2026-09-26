@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../app_config.dart';
+import '../demo.dart';
 import '../l10n.dart';
 import '../monetization/ads.dart';
 import '../services/api.dart';
@@ -23,6 +25,14 @@ class _LookupTabState extends State<LookupTab> {
   String? _e164;
   String? _error;
   bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (screenshotMode && Demo.tab == 1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _search(Phone.display(Demo.lookupNumber, Demo.country)));
+    }
+  }
 
   @override
   void dispose() {

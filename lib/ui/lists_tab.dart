@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../app_config.dart';
+import '../demo.dart';
 import '../l10n.dart';
 import '../services/app_state.dart';
 import '../services/phone.dart';
@@ -15,6 +17,7 @@ class ListsTab extends StatelessWidget {
     final t = L10n.of(context);
     return DefaultTabController(
       length: 3,
+      initialIndex: screenshotMode ? Demo.listTab : 0,
       child: Scaffold(
         appBar: AppBar(
           title: Text(t.s('tab_lists')),

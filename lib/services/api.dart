@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../app_config.dart';
+import '../demo.dart';
 
 class NumberInfo {
   NumberInfo(this.json);
@@ -53,6 +54,7 @@ class Api {
   }
 
   Future<NumberInfo?> lookup(String number, String region) async {
+    if (screenshotMode) return Demo.lookup();
     final r = await _client.get(_u('/v1/lookup', {'number': number, 'region': region})).timeout(_timeout);
     if (r.statusCode != 200) return null;
     return NumberInfo(jsonDecode(r.body) as Map<String, dynamic>);
@@ -74,6 +76,7 @@ class Api {
   }
 
   Future<Map<String, dynamic>?> stats(String country) async {
+    if (screenshotMode) return Demo.stats();
     final r = await _client.get(_u('/v1/stats/$country')).timeout(_timeout);
     if (r.statusCode != 200) return null;
     return jsonDecode(r.body) as Map<String, dynamic>;
