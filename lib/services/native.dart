@@ -33,6 +33,9 @@ class Native {
   Future<Object?> writeCallDirectory({required String block, required String identify}) =>
       _call<Object>('writeCallDirectory', {'block': block, 'identify': identify});
 
+  /// iOS: rules for the SMS filter extension (see scam_rules.dart).
+  Future<void> writeMessageFilter(String json) => _call<Object>('writeMessageFilter', {'json': json});
+
   Future<String> readLog() async => (await _call<String>('readLog')) ?? '';
 
   Future<void> clearLog() => _call<Object>('clearLog');

@@ -11,6 +11,7 @@ import '../services/native.dart';
 import '../services/phone.dart';
 import 'lists_tab.dart';
 import 'lookup_tab.dart';
+import 'messages_tab.dart';
 import 'protection_tab.dart';
 import 'report_sheet.dart';
 import 'settings_tab.dart';
@@ -80,7 +81,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final t = L10n.of(context);
-    const pages = [ProtectionTab(), LookupTab(), ListsTab(), SettingsTab()];
+    const pages = [ProtectionTab(), LookupTab(), MessagesTab(), ListsTab(), SettingsTab()];
     return Scaffold(
       // Phone-width column on iPad and tablets.
       body: Center(
@@ -99,6 +100,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
             destinations: [
               NavigationDestination(icon: const Icon(Icons.shield_outlined), selectedIcon: const Icon(Icons.shield), label: t.s('tab_protection')),
               NavigationDestination(icon: const Icon(Icons.search), label: t.s('tab_lookup')),
+              NavigationDestination(icon: const Icon(Icons.sms_failed_outlined), selectedIcon: const Icon(Icons.sms_failed), label: t.s('tab_messages')),
               NavigationDestination(icon: const Icon(Icons.block_outlined), selectedIcon: const Icon(Icons.block), label: t.s('tab_lists')),
               NavigationDestination(icon: const Icon(Icons.settings_outlined), selectedIcon: const Icon(Icons.settings), label: t.s('tab_settings')),
             ],

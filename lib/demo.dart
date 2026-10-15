@@ -67,6 +67,38 @@ class Demo {
 
   static String get reportComment => (_comments[lang] ?? _comments['en']!).last;
 
+  /// A typical fake-courier scam SMS, for the "Check a message" screenshot.
+  static String get scamMessage => _scamSms[lang] ?? _scamSms['en']!;
+
+  /// Words the demo user blocks in SMS.
+  static List<String> get keywords => _keywords[lang] ?? _keywords['en']!;
+
+  static const _scamSms = {
+    'it': 'Poste Italiane: il tuo pacco è in giacenza. Paga 1,99 € entro 24 ore o verrà restituito: https://bit.ly/3pAcco-it',
+    'en': 'USPS: your package is on hold due to an incomplete address. Update within 24 hours: https://usps-redelivery.top/track',
+    'fr': 'La Poste : votre colis est bloqué. Réglez 1,99 € de frais de douane sous 24h : https://bit.ly/colis-fr',
+    'de': 'DHL: Ihr Paket konnte nicht zugestellt werden. Zollgebühr 1,99 € sofort zahlen: https://dhl-zustellung.xyz/paket',
+    'es': 'Correos: su paquete está retenido en aduana. Pague 1,99 € en 24 horas: https://bit.ly/correos-es',
+    'pt': 'CTT: a sua encomenda está retida na alfândega. Pague 1,99 € em 24 horas: https://bit.ly/ctt-pt',
+    'nl': 'PostNL: uw pakket kon niet worden bezorgd. Betaal binnen 24 uur €1,99: https://postnl-bezorging.top/pakket',
+    'pl': 'InPost: Twoja paczka czeka na dopłatę 1,99 zł. Zapłać w ciągu 24 godzin: https://bit.ly/inpost-pl',
+    'ro': 'Posta Română: coletul tău este blocat în vamă. Plătește 1,99 lei în 24 de ore: https://bit.ly/colet-ro',
+    'sv': 'PostNord: ditt paket väntar på tullavgift 19 kr. Betala inom 24 timmar: https://bit.ly/paket-se',
+    'ru': 'Почта России: ваша посылка задержана на таможне. Оплатите 99 ₽ в течение 24 часов: https://bit.ly/posylka-ru',
+    'uk': 'Нова пошта: ваша посилка затримана на митниці. Сплатіть 29 грн протягом 24 годин: https://bit.ly/posylka-ua',
+    'tr': 'PTT Kargo: paketiniz gümrükte bekliyor. 24 saat içinde 19 TL ödeyin: https://bit.ly/kargo-tr',
+    'ar': 'أرامكس: طردك محتجز في الجمارك. ادفع 5 ريال خلال 24 ساعة عاجل: https://bit.ly/shipment-sa',
+    'zh': '【快递】您的包裹因地址不详被退回，请在24小时内点击 https://bit.ly/kd-cn 补充信息，逾期将停止派送。',
+    'ja': '【佐川急便】お荷物をお届けに上がりましたが不在の為持ち帰りました。至急ご確認ください https://bit.ly/sagawa-jp',
+  };
+
+  static const _keywords = {
+    'it': ['giacenza', 'rimborso'], 'en': ['toll', 'refund'], 'fr': ['CPF', 'colis'], 'de': ['Zollgebühr', 'Erstattung'],
+    'es': ['aduana', 'reembolso'], 'pt': ['alfândega', 'reembolso'], 'nl': ['pakket', 'terugbetaling'], 'pl': ['dopłata', 'zwrot'],
+    'ro': ['vamă', 'rambursare'], 'sv': ['tullavgift', 'återbetalning'], 'ru': ['таможн', 'компенсация'], 'uk': ['митниц', 'компенсація'],
+    'tr': ['gümrük', 'iade'], 'ar': ['جمارك', 'استرداد'], 'zh': ['退款', '补充信息'], 'ja': ['不在', '返金'],
+  };
+
   static const _comments = {
     'it': ['Si spacciano per la banca e chiedono il codice OTP. Truffa!', 'Offerta luce e gas, richiamano ogni giorno.'],
     'en': ['Claims to be your bank and asks for the one-time code. Scam!', 'Fake car warranty robocall, calls every day.'],

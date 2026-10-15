@@ -13,6 +13,7 @@ import '../l10n.dart';
 import 'api.dart';
 import 'native.dart';
 import 'phone.dart';
+import 'scam_rules.dart';
 
 /// How the community list is applied to incoming calls.
 enum Mode { block, silence, warn }
@@ -50,6 +51,10 @@ class AppState extends ChangeNotifier {
   final Set<String> ranges = {}; // "+39021234****" patterns
   final Set<String> reported = {};
 
+  /// SMS filter (iOS) and "Check a message": the user's own words to block.
+  final Set<String> smsKeywords = {};
+  bool smsStrict = false;
+
   List<List<dynamic>> community = []; // [e164, category, score]
   String? _etag;
   int listUpdatedAt = 0;
@@ -75,6 +80,8 @@ class AppState extends ChangeNotifier {
     allowed.addAll((_prefs.getStringList('allowed') ?? []));
     ranges.addAll((_prefs.getStringList('ranges') ?? []));
     reported.addAll((_prefs.getStringList('reported') ?? []));
+    smsKeywords.addAll((_prefs.getStringList('smsKeywords') ?? []));
+    smsStrict = _prefs.getBool('smsStrict') ?? false;
     try {
       final cached = jsonDecode(await _listFile.readAsString()) as Map<String, dynamic>;
       if (cached['country'] == country) {
@@ -98,6 +105,24 @@ class AppState extends ChangeNotifier {
     }
     ranges.add('${Demo.number(9).substring(0, Demo.number(9).length - 4)}****');
     allowed.add(Demo.number(12));
+    smsKeywords.addAll(Demo.keywords);
+    final now = DateTime.now();
+    log = [
+      for (final (i, action, cat, score) in [
+        (0, 'block', 'scam', 9),
+        (1, 'block', 'telemarketing', 8),
+        (2, 'warn', 'survey', 6),
+        (3, 'block', 'robocall', 7),
+        (4, 'unknown', '', 0),
+      ])
+        ScreenedCall({
+          'n': Demo.number(i),
+          't': now.subtract(Duration(minutes: 17 + i * 211)).millisecondsSinceEpoch,
+          'a': action,
+          'c': cat,
+          's': score,
+        }),
+    ];
     active = true;
     notifyListeners();
   }
@@ -230,6 +255,12 @@ class AppState extends ChangeNotifier {
       String lines(Map<int, String> m) =>
           (m.keys.toList()..sort()).map((k) => m[k]!.isEmpty ? '$k' : '$k\t${m[k]}').join('\n');
       await Native.instance.writeCallDirectory(block: lines(block), identify: lines(identify));
+      await Native.instance.writeMessageFilter(messageFilterJson(
+        strict: smsStrict,
+        keywords: smsKeywords,
+        spamSenders: [...blocked.keys, for (final row in community) row[0] as String],
+        allowedSenders: allowed,
+      ));
     }
   }
 
@@ -320,6 +351,31 @@ class AppState extends ChangeNotifier {
     await _prefs.setStringList('allowed', allowed.toList());
     await _prefs.setStringList('ranges', ranges.toList());
     await _prefs.setStringList('reported', reported.toList());
+    notifyListeners();
+    await apply();
+  }
+
+  // ----------------------------------------------------------- SMS filter
+  Future<void> addSmsKeyword(String word) async {
+    final w = word.trim();
+    if (w.length < 2) return;
+    smsKeywords.add(w);
+    await _saveSms();
+  }
+
+  Future<void> removeSmsKeyword(String word) async {
+    smsKeywords.remove(word);
+    await _saveSms();
+  }
+
+  Future<void> setSmsStrict(bool value) async {
+    smsStrict = value;
+    await _saveSms();
+  }
+
+  Future<void> _saveSms() async {
+    await _prefs.setStringList('smsKeywords', smsKeywords.toList());
+    await _prefs.setBool('smsStrict', smsStrict);
     notifyListeners();
     await apply();
   }

@@ -14,6 +14,7 @@ workflows:
         provisioning_profiles:
           - blacklist_appstore
           - blacklist_calldirectory_appstore
+          - blacklist_msgfilter_appstore
         certificates:
           - ithelpdesk_distribution_20260916
       vars:
@@ -29,7 +30,7 @@ workflows:
     scripts:
       - name: Get packages
         script: flutter pub get
-      - name: Add Call Directory extension to the Xcode project
+      - name: Add Call Directory + SMS Message Filter extensions to the Xcode project
         script: |
           gem install xcodeproj --user-install --no-document
           ruby ios/scripts/add_call_directory.rb

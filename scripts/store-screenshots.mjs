@@ -14,16 +14,23 @@ const LANGS = ['it', 'en', 'fr', 'de', 'es', 'pt', 'nl', 'pl', 'ro', 'sv', 'ru',
 const only = process.argv[4] ? process.argv[4].split(',') : LANGS
 
 // iPhone 6.7" (1290x2796) and iPad Pro 12.9" (2048x2732).
-const DEVICES = {
-  iphone: { viewport: { width: 430, height: 932 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true },
-  ipad: { viewport: { width: 1024, height: 1366 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
-}
+// PLATFORM=android: Google Play phone (1030x2060, max 2:1) and 10" tablet shots.
+const DEVICES = process.env.PLATFORM === 'android'
+  ? {
+      phone: { viewport: { width: 412, height: 824 }, deviceScaleFactor: 2.5, isMobile: true, hasTouch: true },
+      tablet: { viewport: { width: 800, height: 1280 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+    }
+  : {
+      iphone: { viewport: { width: 430, height: 932 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true },
+      ipad: { viewport: { width: 1024, height: 1366 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+    }
 const SCREENS = [
   ['1-protection', 'tab=0'],
-  ['2-lookup', 'tab=1'],
-  ['3-report', 'tab=0&sheet=report'],
-  ['4-lists', 'tab=2'],
-  ['5-settings', 'tab=3'],
+  ['2-messages', 'tab=2'],
+  ['3-lookup', 'tab=1'],
+  ['4-report', 'tab=0&sheet=report'],
+  ['5-lists', 'tab=3'],
+  ['6-settings', 'tab=4'],
 ]
 
 const browser = await chromium.launch({ channel: 'chrome' })

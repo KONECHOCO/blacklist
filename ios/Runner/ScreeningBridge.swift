@@ -43,6 +43,19 @@ final class ScreeningBridge {
                 CXCallDirectoryManager.sharedInstance.reloadExtension(withIdentifier: extensionId) { error in
                     DispatchQueue.main.async { result(error == nil ? true : error!.localizedDescription) }
                 }
+            case "writeMessageFilter":
+                // Rules + spam senders for the SMS filter extension (read offline by MessageFilter).
+                guard let json = (call.arguments as? [String: String])?["json"],
+                      let dir = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) else {
+                    result(false)
+                    return
+                }
+                do {
+                    try json.write(to: dir.appendingPathComponent("sms_filter.json"), atomically: true, encoding: .utf8)
+                    result(true)
+                } catch {
+                    result(FlutterError(code: "write", message: error.localizedDescription, details: nil))
+                }
             case "readLog", "takeLaunchNumber":
                 result(nil)  // iOS apps can't read call history
             default:

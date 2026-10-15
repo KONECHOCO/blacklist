@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import 'l10n_messages.dart';
+
 /// UI strings in the 16 app languages. `L10n.of(context).s('key')`, with
 /// {placeholders} filled by `f('key', {'n': 3})`. Missing keys fall back to English.
 class L10n {
@@ -19,9 +21,10 @@ class L10n {
   bool get rtl => code == 'ar';
 
   /// Whether this language translates [key] itself (no English fallback).
-  bool translates(String key) => _strings[code]?.containsKey(key) ?? false;
+  bool translates(String key) => (_strings[code]?.containsKey(key) ?? false) || (messagesStrings[code]?.containsKey(key) ?? false);
 
-  String s(String key) => _strings[code]?[key] ?? _strings['en']![key] ?? key;
+  String s(String key) =>
+      _strings[code]?[key] ?? messagesStrings[code]?[key] ?? _strings['en']![key] ?? messagesStrings['en']![key] ?? key;
 
   String f(String key, Map<String, Object> vars) {
     var text = s(key);
