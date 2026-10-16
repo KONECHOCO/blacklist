@@ -71,6 +71,9 @@ workflows:
         - google_play
       vars:
         API_BASE: https://blacklist.ikonetsolutions.com
+        UNITY_GAME_ID_ANDROID: "800382079"
+        ADMOB_APP_ID_ANDROID: ca-app-pub-1151868778464777~3570675300
+        ADMOB_BANNER_ANDROID: ca-app-pub-1151868778464777/9832831324
     cache:
       cache_paths:
         - $HOME/.pub-cache
